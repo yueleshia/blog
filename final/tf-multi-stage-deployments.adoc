@@ -1,0 +1,13 @@
+`$sh IS_LOCAL="${IS_LOCAL:-true}" ./_util.sh header "tf-multi-stage-deployments.adoc" "2025-06-12" $`
+
+This all should be equally valid for both OpenTofu and Terraform.
+
+== Managing Authentication
+
+== Project Management
+
+
+
+== Managing Configuration for Multi-Phased Releases
+
+== CICD

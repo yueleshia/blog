@@ -1,0 +1,27 @@
+<!doctype html>
+<html
+  lang={{ .Language.Lang }}
+  dir={{ .Language.LanguageDirection | default `ltr` }}
+>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ or .Title .Site.Title }}{{ if ne .Kind "home" }} | {{ .CurrentSection.Title }}{{ end }}</title>
+  </head>
+  <nav style="
+    display:               grid;
+    grid-template-columns: repeat({{ len .Site.Menus.main  }}, 1fr);
+    gap:                   10px;
+    justify-items:         center;
+  ">
+    {{ range .Site.Menus.main }}
+      {{- $icon := printf
+    "<i data-feather=\"%s\"></i>" .Pre -}}
+      {{- $text := print $icon " " .Name | safeHTML -}}
+      <p><a class="nav-link" href="{{ .URL }}">{{ $text }}</a></p>
+    {{ end }}
+  </nav>
+  <body>
+    {{ block "page" . }}{{ end }}
+  </body>
+</html>
