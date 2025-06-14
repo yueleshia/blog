@@ -1,0 +1,141 @@
+`$sh nickel export _series.ncl \
+  --field 'series_adoc."tf-4-advanced.adoc".header' \
+  --format raw -- \
+  --override is_local="${IS_LOCAL:-false}" \
+  --override date="2025-06-15" \
+$`
+
+== Style Guide
+
+* Only use underscores for resource and data names
+* For patterns{wj}footnote:[By 'pattern', I mean a logical set of components, e.g. a docker container + container registry entry + networking)] that you have extracted into a `module`, start with the name of the pattern.
++
+So instead of `aws_ecr_repository.example` -> `module.my_module.aws_ecr_repository.example`
++
+I would rather `aws_ecr_repository.example` -> `module.ecr_my_module.aws_ecr_repository.example`
++
+as this makes migrations easier when you see `module.ecr_my_module...`.
+
+* Make all your keys compile-time known.
+If that's not possible, make them only dependent on variables.
+A value is compile-time known if both it's keys and values 
++
+[source,hcl]
+----
+# So rather than this
+locals {
+  databases = {
+    notification-sms   = { memory = 512, }
+    notification-email = { memory = 512, }
+    data-cleaner       = { memory = 1024, }
+  },
+}
+
+
+----
+
+== Managing Secrets
+
+Unfortunately, the best solution is to not manage secrets with Terraform.
+Managing secrets typically comes with two issues.
+
+. Source code is typically saved to version control and are typically public, but secrets are typically private.
+Even if you never save secrets into your version control, opentofu stores them in plaintext in the tfstate file on execution.
+// @TODO: example of tfstate
+
+. Often the team reponsible for maintain the TF codebase will not be same as those maintaining the secrets.
+In other words, the DevOps team might not be responsible for all secrets.
+
+The tfstate file is typically stored in file storage like AWS S3 bucket or Azure storage container.
+So OpenTofu runners (DevOps) and anyone who has access to said file storage can read all your secrets.
+Thankfully there are options for encrypt-at-rest, but this might still not be sufficient.
+
+I would secret management into two concerns, the creation/
+
+=== Managing Secrets values with local-only Terraform
+
+
+
+=== Using Secrets in HCL
+
+If you really must use Terraform then here are some options:
+
+==== Provision but do not manage value
+
+With this approach your tfstate will update on each apply with the plaintext secret.
+However, this is the most convenient.
+
+[NOTE]
+On first apply, you will have to 1. apply, 2. update secret, 3. apply againto use real secret value.
+Updates to secret will require 1. update secret and 2. apply.
+
+A simple pattern is to make use of lifecycle ignore on the value
+
+[source,hcl]
+----
+resource "azurerm_key_vault_secret" "example" {
+  name         = "example-secret"
+  value        = "<<<to-be-overriden>>>" # The initial dummy value
+  key_vault_id = azurerm_key_vault.example.id
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+output "using_secret" {
+  value = azurerm_key_vault_secret.example.
+}
+
+----
+
+The AWS provider API is a bit better, as they allow you to manage values separately:
+
+[source,hcl]
+----
+resource "aws_secretsmanager_secret" "example" {
+  name        = "/secret/name"
+  description = "This is an example secret"
+}
+
+resource "aws_secretsmanager_secret_version" "example" {
+  secret_id     = aws_secretsmanager_secret.example.id
+  secret_string = "<<<to-be-overriden>>>" # The initial dummy value
+}
+
+data "aws_secretsmanager_secret_version" "latest" {
+  # This is necessary as otherwise data will be schedule in parallel with provisioning
+  # and will then fail because the secret does not exist yet
+  depends_on = [aws_secretsmanager_secret.example]
+
+  secret_id = data.aws_secretsmanager_secret.example.id
+}
+
+output "using_secret" {
+  value = data.aws_secretsmanager_secret_version.latest.secret_string
+}
+----
+
+
+==== Using local-exec
+
+This not a first-class supported workflow in OpenTofu/Terraform.
+When a resource, e.g. congito configuration for a load balancer, requires you to pass the value stored in a secret, then you ne
+For things like configuring 
+
+
+==== Do not use terraform for secrets
+
+
+
+== Managing Configuration
+
+There are a couple options for managing configuraiton.
+
+=== Locals
+
+=== Tfvars
+
+=== TF Module
+
+=== Extenral Solution

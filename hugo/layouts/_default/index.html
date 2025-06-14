@@ -1,0 +1,7 @@
+{{ define "page" }}
+<article class="container">
+  {{ range first 10 .Data.Pages }}
+    <h1>{{ .Title }}</h1>
+  {{ end }}
+</article>
+{{ end }}

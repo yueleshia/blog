@@ -1,0 +1,9 @@
+`$sh nickel export _series.ncl \
+  --field 'series_adoc."tf-5-complaints.adoc".header' \
+  --format raw -- \
+  --override is_local="${IS_LOCAL:-true}" \
+  --override date="2025-06-15" \
+$`
+
+== Yo
+

@@ -1,0 +1,20 @@
+`$sh nickel export _series.ncl \
+  --field 'series_adoc."tf-3-refactoring.adoc".header' \
+  --format raw -- \
+  --override is_local="${IS_LOCAL:-true}" \
+  --override date="2025-06-15" \
+$`
+
+This post applies equally to OpenTofu and Terraform.
+
+So you have created several resources, and you have noticed a pattern emerging, but refactoring your codebase means renaming resources or extracting code into its own module.
+In TF (ToFu/TerraForm), changing the identifier of a resource means destroying and recreating it.
+Here are some tips and tricks on how to refactor a Terraform code base.
+
+== The basics
+
+Really there are only two core commands `tofu state mv my_resource.old_name module.pattern.my_resource.new_name` and `tofu state import`
+
+== The ergonomic workflow
+
+Terragrutn

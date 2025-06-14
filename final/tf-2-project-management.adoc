@@ -1,0 +1,18 @@
+`$sh nickel export _series.ncl \
+  --field 'series_adoc."tf-2-project-management.adoc".header' \
+  --format raw -- \
+  --override is_local="${IS_LOCAL:-true}" \
+  --override date="2025-06-15" \
+$`
+
+This all should be equally valid for both OpenTofu and Terraform.
+
+== Managing Authentication
+
+== Project Management
+
+
+
+== Managing Configuration for Multi-Phased Releases
+
+== CICD
